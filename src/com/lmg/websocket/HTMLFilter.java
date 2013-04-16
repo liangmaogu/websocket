@@ -1,4 +1,4 @@
-package com.inno.websocket;
+package com.lmg.websocket;
 
 public final class HTMLFilter {
 

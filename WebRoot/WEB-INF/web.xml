@@ -10,7 +10,7 @@
 
   <servlet>
   	<servlet-name>chat</servlet-name>
-  	<servlet-class>com.inno.websocket.ChatWebSocketServlet</servlet-class>
+  	<servlet-class>com.lmg.websocket.ChatWebSocketServlet</servlet-class>
   </servlet>
   <servlet-mapping>
   	<servlet-name>chat</servlet-name>

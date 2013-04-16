@@ -82,6 +82,14 @@ function appendMsgToNode(node, msg) {
 	node.appendChild(span);
 }
 
+var MsgType = {
+	SYSTEM_USER_ONLINE_MSG: 1,	// 系统消息用户上线
+	SYSTEM_USER_OFFLINE_MSG: 2,	// 系统消息用户下线
+	GROUP_MSG: 3,				// 群消息
+	P2P_MSG: 4,					// 点对点消息
+	CHAR_MSG: 5,				// 文本消息
+	IMG_MSG: 6					// 图片消息
+}
 
 var Notice = {
 	support: true,
@@ -124,9 +132,12 @@ var Notice = {
 				if (checkFlag || !this.sendFlag) 
 					return;
 				//实例化通知对象
-				var notification = myNotifications.createNotification('/images/notify.png','通知','秘密会所有新消息啦！');
+				var notification = myNotifications.createNotification('images/notify.png',
+					'notice',
+					'you have new message');
 				notification.ondisplay = function(){
 					//显示通知前触发事件
+					setTimeout("notification.cancel()", 5000);
 				};
 				notification.onclose = function(){
 					//关闭通知后触发事件
@@ -219,7 +230,15 @@ var Meeting = {
 	sendMsg : function() {
 		var msg = this.getMyMsg();
 		if (msg.length > 0) {
-			Chat.socket.send("msgType:'" + this.msgType + "'&-&msg:" + this.getMyMsg());
+			var json = '{' +
+					'"msgType":' + MsgType.GROUP_MSG +
+					',"subMsgType":"' + this.msgType +
+					'","msg":"' + msg +
+					'","fromUserId":null' +
+					',"toUserId":null' +
+				'}';
+			
+			Chat.socket.send(json);
 			this.msgText.get(0).value = "";
 			DrawBoard.clearCanvas();
 		}		
@@ -351,18 +370,18 @@ var Chat = {
 		
 		Chat.socket.onclose = function() {
 			document.getElementById('msg').onkeydown = null;
-			Meeting.showMsg("sys", "WebSocket closed.");
 		}
 		
 		Chat.socket.onmessage = function(message) {
-			var data = message.data;
-			if (data.indexOf("from") > 0) {
-				var json = eval("({" + data + "})")
-				Meeting.showMsg("server", json.from + ": ", json.msg, json.msgType);
-			} else {
-				Meeting.showMsg("sys", data);
+			var json = eval("(" + message.data + ")")
+			if (json.msgType == MsgType.SYSTEM_USER_ONLINE_MSG) {
+				Meeting.showMsg("sys", "", json.msg, json.subMsgType);
+			} else if (json.msgType == MsgType.GROUP_MSG) {
+				Meeting.showMsg("server", json.fromUserId+": ", json.msg, json.subMsgType);
 			}
-			
+			if (Notice.permission) {
+				Notice.showDesktopNotice();
+			}
 		}
 	},
 	
