@@ -8,7 +8,7 @@ public class Message {
 	private String fromUserId;
 	private String toUserId;
 	private String msg;
-	private Set<String> users;
+	private Set<User> users;
 
 	public int getMsgType() {
 		return msgType;
@@ -50,11 +50,11 @@ public class Message {
 		this.msg = msg;
 	}
 
-	public Set<String> getUsers() {
+	public Set<User> getUsers() {
 		return users;
 	}
 
-	public void setUsers(Set<String> users) {
+	public void setUsers(Set<User> users) {
 		this.users = users;
 	}
 }

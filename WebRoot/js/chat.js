@@ -258,12 +258,10 @@ var Meeting = {
 	showUserList : function(userList) {
 		var u = [];
 		for ( var ip in userList ) {
-			var num = userList[ip];
+			var user = userList[ip];
 			u.push("<li>");
-			u.push(ip);
-			if (num > 1) {
-				u.push(" + " + (num-1) + " ¸öÂí¼×");
-			}
+			u.push("<img src='" + user.headImg + "'></img>")
+			u.push(user.username);
 			u.push("</li>");
 		}
 		this.userList.empty().append(u.join(''));
@@ -376,8 +374,12 @@ var Chat = {
 			var json = eval("(" + message.data + ")")
 			if (json.msgType == MsgType.SYSTEM_USER_ONLINE_MSG) {
 				Meeting.showMsg("sys", "", json.msg, json.subMsgType);
+				Meeting.showUserList(json.users);
 			} else if (json.msgType == MsgType.GROUP_MSG) {
 				Meeting.showMsg("server", json.fromUserId+": ", json.msg, json.subMsgType);
+			} else if (json.msgType == MsgType.SYSTEM_USER_OFFLINE_MSG) {
+				Meeting.showMsg("sys", "", json.msg, json.subMsgType);
+				Meeting.showUserList(json.users);
 			}
 			if (Notice.permission) {
 				Notice.showDesktopNotice();

@@ -15,12 +15,12 @@ import org.apache.catalina.websocket.StreamInbound;
 import org.apache.catalina.websocket.WebSocketServlet;
 import org.apache.catalina.websocket.WsOutbound;
 import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.lmg.websocket.model.Message;
 import com.lmg.websocket.model.MessageType;
+import com.lmg.websocket.model.User;
 
 public class ChatWebSocketServlet extends WebSocketServlet {
 	private static final long serialVersionUID = 1L;
@@ -29,33 +29,33 @@ public class ChatWebSocketServlet extends WebSocketServlet {
 	private final AtomicInteger connectionIds = new AtomicInteger(0);
 	
 	private final Set<ChatMessageInbound> connections = new CopyOnWriteArraySet<ChatMessageInbound>();
-	private final Set<String> onlineUsers = new CopyOnWriteArraySet<String>();
+	private final Set<User> onlineUsers = new CopyOnWriteArraySet<User>();
 
 	private ObjectMapper mapper = new ObjectMapper();
-	private JsonGenerator generator;
 	
 	@Override
 	protected StreamInbound createWebSocketInbound(String str,
 			HttpServletRequest request) {
-		try {
-			generator = mapper.getJsonFactory().createJsonGenerator(new StringWriter());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		return new ChatMessageInbound(connectionIds.incrementAndGet());
 	}
 
 	private final class ChatMessageInbound extends MessageInbound {
 		private final String nickname;
+		private int id;
 
 		private ChatMessageInbound(int id) {
+			this.id = id;
 			this.nickname = GUEST_PREFIX + id;
 		}
 
 		@Override
 		protected void onClose(int status) {
 			connections.remove(this);
-			onlineUsers.remove(this.nickname);
+			User user = new User();
+			user.setUserId("user" + id);
+			user.setUsername(this.nickname);
+			user.setHeadImg("images/head.png");
+			onlineUsers.remove(user);
 			
 			broadcast(systemMsg(MessageType.SYSTEM_USER_OFFLINE_MSG, " has disconnected"));
 		}
@@ -63,7 +63,11 @@ public class ChatWebSocketServlet extends WebSocketServlet {
 		@Override
 		protected void onOpen(WsOutbound outbound) {
 			connections.add(this);
-			onlineUsers.add(this.nickname);
+			User user = new User();
+			user.setUserId("user" + id);
+			user.setUsername(this.nickname);
+			user.setHeadImg("images/head.png");
+			onlineUsers.add(user);
 			
 			broadcast(systemMsg(MessageType.SYSTEM_USER_ONLINE_MSG, " has joined"));
 		}
