@@ -76,12 +76,6 @@ function createFooter() {
 	}
 }
 
-function appendMsgToNode(node, msg) {
-	var span = document.createElement("span");
-	span.innerText = msg;
-	node.appendChild(span);
-}
-
 var MsgType = {
 	SYSTEM_USER_ONLINE_MSG: 1,	// 系统消息用户上线
 	SYSTEM_USER_OFFLINE_MSG: 2,	// 系统消息用户下线
@@ -122,7 +116,7 @@ var Notice = {
 		}
 	},
 	
-	showDesktopNotice: function(checkFlag) {
+	showDesktopNotice: function(checkFlag, msg) {
 		var myNotifications = window.webkitNotifications; 
 		//判断浏览器是否支持webkitNotifications
 		if(myNotifications){
@@ -134,7 +128,7 @@ var Notice = {
 				//实例化通知对象
 				var notification = myNotifications.createNotification('images/notify.png',
 					'notice',
-					'you have new message');
+					msg);
 				notification.ondisplay = function(){
 					//显示通知前触发事件
 					setTimeout("notification.cancel()", 5000);
@@ -375,15 +369,22 @@ var Chat = {
 			if (json.msgType == MsgType.SYSTEM_USER_ONLINE_MSG) {
 				Meeting.showMsg("sys", "", json.msg, json.subMsgType);
 				Meeting.showUserList(json.users);
+				if (Notice.permission) {
+					Notice.showDesktopNotice(false, "new user joined");
+				}
 			} else if (json.msgType == MsgType.GROUP_MSG) {
 				Meeting.showMsg("server", json.fromUserId+": ", json.msg, json.subMsgType);
+				if (Notice.permission) {
+					Notice.showDesktopNotice(false, json.msg);
+				}
 			} else if (json.msgType == MsgType.SYSTEM_USER_OFFLINE_MSG) {
 				Meeting.showMsg("sys", "", json.msg, json.subMsgType);
 				Meeting.showUserList(json.users);
+				if (Notice.permission) {
+					Notice.showDesktopNotice(false, "user disconnected");
+				}
 			}
-			if (Notice.permission) {
-				Notice.showDesktopNotice();
-			}
+			
 		}
 	},
 	
